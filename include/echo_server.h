@@ -2,7 +2,7 @@
 
 #include <array>
 #include <echo_settings.h>
-#include <sfml/Network.hpp>
+#include <SFML/Network.hpp>
 
 
 namespace echo

@@ -2,7 +2,7 @@
 #include <echo_client.h>
 #include <imgui.h>
 #include <iostream>
-#include <sfml/Network/IpAddress.hpp>
+#include <SFML/Network/IpAddress.hpp>
 
 namespace echo
 {

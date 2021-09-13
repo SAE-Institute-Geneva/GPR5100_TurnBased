@@ -24,7 +24,7 @@ add_library(GPR5100_Lib STATIC ${gpr5100_src})
 target_include_directories(GPR5100_Lib PUBLIC include/)
 target_link_libraries(GPR5100_Lib PUBLIC sfml-system sfml-network sfml-graphics sfml-window
 	sfml-network sfml-audio ImGui-SFML::ImGui-SFML)
-set_target_properties(GPR5100_Lib PROPERTIES UNITY_BUILD ON)
+set_target_properties(GPR5100_Lib PROPERTIES UNITY_BUILD OFF)
 
 add_executable(client main/main_client.cpp)
 target_link_libraries(client PRIVATE GPR5100_Lib)

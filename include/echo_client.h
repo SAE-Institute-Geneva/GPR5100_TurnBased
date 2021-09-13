@@ -2,9 +2,10 @@
 
 #include <system.h>
 #include <array>
+#include <vector>
 #include <echo_settings.h>
 #include <string>
-#include <sfml/Network/TcpSocket.hpp>
+#include <SFML/Network/TcpSocket.hpp>
 
 
 namespace echo

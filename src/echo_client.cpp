@@ -2,13 +2,15 @@
 #include <echo_client.h>
 #include <imgui.h>
 #include <iostream>
+#include <cstring>
 #include <SFML/Network/IpAddress.hpp>
 
 namespace echo
 {
 void EchoClient::Init()
 {
-
+    constexpr auto address = "localhost";
+    std::memcpy(ipAddressBuffer.data(), address, std::strlen(address)+1);
 }
 
 void EchoClient::Update()

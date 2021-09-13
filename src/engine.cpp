@@ -13,6 +13,11 @@ void Engine::AddSystem(System* system)
     systems_.push_back(system);
 }
 
+void Engine::AddDrawImGuiSystem(DrawImGuiInterface* drawImGuiSystem)
+{
+    drawImGuiSystems_.push_back(drawImGuiSystem);
+}
+
 void Engine::Run()
 {
     Init();
@@ -57,7 +62,7 @@ void Engine::Update(sf::Time dt)
     }
     ImGui::SFML::Update(window_, dt);
 
-    for(auto* system : systems_)
+    for(auto* system : drawImGuiSystems_)
     {
         system->DrawImGui();
     }

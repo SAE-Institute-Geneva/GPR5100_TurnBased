@@ -28,5 +28,6 @@ set_target_properties(GPR5100_Lib PROPERTIES UNITY_BUILD ON)
 
 add_executable(client main/main_client.cpp)
 target_link_libraries(client PRIVATE GPR5100_Lib)
+
 add_executable(server main/main_server.cpp)
 target_link_libraries(server PRIVATE GPR5100_Lib)

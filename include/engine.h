@@ -11,6 +11,7 @@ class Engine
 public:
     Engine();
     void AddSystem(System* system);
+    void AddDrawImGuiSystem(DrawImGuiInterface* drawImGuiSystem);
     void Run();
 private:
     void Init();
@@ -18,5 +19,6 @@ private:
     void Destroy();
 
     std::vector<System*> systems_;
+    std::vector<DrawImGuiInterface*> drawImGuiSystems_;
     sf::RenderWindow window_; 
 };

@@ -7,9 +7,6 @@ namespace echo
 {
 int EchoServer::Run()
 {
-    std::array<char, maxDataSize> receivedMsg;
-
-
     listener_.setBlocking(false);
     if(listener_.listen(serverPortNumber) != sf::Socket::Done)
     {
@@ -31,18 +28,21 @@ int EchoServer::Run()
                 selector_.add(newSocket);
             }
         }
+        // receive new messages
         if(selector_.wait(sf::milliseconds(20)))
         {
             for(auto& socket: sockets_)
             {
                 if(selector_.isReady(socket))
                 {
+                    std::array<char, maxDataSize> receivedMsg{};
                     std::size_t received = 0;
                     sf::Socket::Status receivingStatus;
                     do
                     {
                         receivingStatus = socket.receive(receivedMsg.data(), maxDataSize, received);
                     } while (receivingStatus == sf::Socket::Partial);
+
                     if(receivingStatus == sf::Socket::Done)
                     {
                         std::cout << "Received a msg from " << socket.getRemoteAddress().toString() << ":"

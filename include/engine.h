@@ -10,6 +10,7 @@ class Engine
 {
 public:
     Engine();
+    Engine(sf::Vector2i windowSize);
     void AddSystem(System* system);
     void AddDrawSystem(DrawInterface* drawSystem);
     void AddDrawImGuiSystem(DrawImGuiInterface* drawImGuiSystem);

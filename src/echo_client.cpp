@@ -1,6 +1,7 @@
 #include <array>
 #include <echo_client.h>
 #include <imgui.h>
+#include <imgui_stdlib.h>
 #include <iostream>
 #include <cstring>
 #include <SFML/Network/IpAddress.hpp>
@@ -9,8 +10,6 @@ namespace echo
 {
 void EchoClient::Init()
 {
-    constexpr auto address = "localhost";
-    std::memcpy(ipAddressBuffer.data(), address, std::strlen(address)+1);
 }
 
 void EchoClient::Update()
@@ -73,7 +72,7 @@ void EchoClient::DrawImGui()
     }
     else
     {
-        ImGui::InputText("Ip Address", ipAddressBuffer.data(), ipAddressBuffer.size());
+        ImGui::InputText("Ip Address", &ipAddressBuffer);
         ImGui::SameLine();
         ImGui::InputInt("Port Number", &portNumber);
         if(ImGui::Button("Connect"))

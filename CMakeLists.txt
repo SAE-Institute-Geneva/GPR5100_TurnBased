@@ -26,8 +26,14 @@ target_link_libraries(GPR5100_Lib PUBLIC sfml-system sfml-network sfml-graphics 
 	sfml-network sfml-audio ImGui-SFML::ImGui-SFML)
 set_target_properties(GPR5100_Lib PROPERTIES UNITY_BUILD OFF)
 
-add_executable(client main/main_client.cpp)
-target_link_libraries(client PRIVATE GPR5100_Lib)
+add_executable(echo_client main/main_echo_client.cpp)
+target_link_libraries(echo_client PRIVATE GPR5100_Lib)
 
-add_executable(server main/main_server.cpp)
-target_link_libraries(server PRIVATE GPR5100_Lib)
+add_executable(echo_server main/main_echo_server.cpp)
+target_link_libraries(echo_server PRIVATE GPR5100_Lib)
+
+add_executable(morpion_server main/main_morpion_server.cpp)
+target_link_libraries(morpion_server PRIVATE GPR5100_Lib)
+
+add_executable(morpion_client main/main_morpion_client.cpp)
+target_link_libraries(morpion_client PRIVATE GPR5100_Lib)

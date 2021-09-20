@@ -8,6 +8,13 @@ Engine::Engine() : window_(sf::VideoMode(640,480), "Turn Based")
 {
 }
 
+
+Engine::Engine(sf::Vector2i windowSize) : window_(sf::VideoMode(windowSize.x, windowSize.y), "Turn Based")
+{
+
+}
+
+
 void Engine::AddSystem(System* system)
 {
     systems_.push_back(system);

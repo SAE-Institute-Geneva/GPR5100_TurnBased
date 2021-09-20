@@ -23,7 +23,7 @@ private:
     std::array<char, maxDataSize> msg_{};
 
 
-    std::array<char, 32> ipAddressBuffer{};
+    std::string ipAddressBuffer = "localhost";
     int portNumber = serverPortNumber;
 
     std::vector<std::string> receivedMsgs_;

@@ -1,4 +1,5 @@
 #pragma once
+#include <SFML/System/Vector2.hpp>
 
 namespace morpion
 {
@@ -12,5 +13,9 @@ enum class MorpionPhase
 };
 
 using PlayerNumber = unsigned char;
-
+struct Move
+{
+    sf::Vector2i position;
+    PlayerNumber playerNumber;
+};
 }

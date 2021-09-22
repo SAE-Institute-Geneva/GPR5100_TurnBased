@@ -1,5 +1,6 @@
 #include "morpion_client.h"
 
+#include <array>
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <iostream>
@@ -42,7 +43,23 @@ void MorpionClient::ReceivePacket(sf::Packet& packet)
     {
         GameInitPacket gameInitPacket{};
         packet >> gameInitPacket;
+        playerNumber_ = gameInitPacket.playerNumber;
+        phase_ = MorpionPhase::GAME;
         std::cout << "You are player " << gameInitPacket.playerNumber + 1 << '\n';
+        break;
+    }
+    case PacketType::MOVE:
+    {
+        if (phase_ != MorpionPhase::GAME)
+            break;
+        MovePacket movePacket;
+        packet >> movePacket;
+        std::cout << "Receive move packet from player " << 
+            movePacket.playerNumber + 1 << " with position: "<< movePacket.position.x<<','<<movePacket.position.y << '\n';
+        auto& currentMove = moves_[currentMoveIndex_];
+        currentMove.position = movePacket.position;
+        currentMove.playerNumber = movePacket.playerNumber;
+        currentMoveIndex_++;
         break;
     }
     default: 
@@ -79,12 +96,70 @@ void MorpionClient::Destroy()
 {
 }
 
+int MorpionClient::GetPlayerNumber() const
+{
+    return playerNumber_;
+}
+
+void MorpionClient::SendNewMove(sf::Vector2i position)
+{
+    MovePacket movePacket;
+    movePacket.packetType = static_cast<unsigned char>(PacketType::MOVE);
+    movePacket.position = position;
+    movePacket.playerNumber = playerNumber_;
+    sf::Packet packet;
+    packet << movePacket;
+    sf::Socket::Status sentStatus;
+    do
+    {
+        sentStatus = socket_.send(packet);
+    } while (sentStatus == sf::Socket::Partial);
+}
+
+const std::array<Move, 9>& MorpionClient::GetMoves() const
+{
+    return moves_;
+}
+
+unsigned char MorpionClient::GetMoveIndex() const
+{
+    return currentMoveIndex_;
+}
+
 MorpionView::MorpionView(MorpionClient& client) : client_(client)
 {
 }
 
 void MorpionView::DrawImGui()
 {
+    if(client_.GetPhase() == MorpionPhase::GAME)
+    {
+        const auto playerNumber = client_.GetPlayerNumber();
+        ImGui::Begin("Client");
+        ImGui::Text("You are player %d", playerNumber + 1);
+
+        std::array<char, 10> board;
+        board.fill(' ');
+        board[9] = 0;
+        const auto& moves = client_.GetMoves();
+        for(unsigned char i = 0; i < client_.GetMoveIndex();i++)
+        {
+            const auto& move = moves[i];
+            board[move.position.x * 3 + move.position.y] = move.playerNumber ? 'X' : 'O';
+        }
+        ImGui::Text("%s", board.data());
+        
+
+        ImGui::InputInt2("New Move", currentPosition_.data());
+        if (client_.GetMoveIndex() % 2 == playerNumber)
+        {
+            if(ImGui::Button("Send"))
+            {
+                client_.SendNewMove(sf::Vector2i(currentPosition_[0], currentPosition_[1]));
+            }
+        }
+        ImGui::End();
+    }
     if (client_.GetPhase() != MorpionPhase::CONNECTION || client_.IsConnected())
         return;
 

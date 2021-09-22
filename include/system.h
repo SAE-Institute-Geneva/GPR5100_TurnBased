@@ -1,4 +1,5 @@
 #pragma once
+#include <SFML/Window/Event.hpp>
 
 namespace sf
 {
@@ -26,4 +27,11 @@ class DrawImGuiInterface
 public:
     virtual ~DrawImGuiInterface() = default;
     virtual void DrawImGui() = 0;
+};
+
+class OnEventInterface
+{
+public:
+    virtual ~OnEventInterface() = default;
+    virtual void OnEvent(const sf::Event& event) = 0;
 };

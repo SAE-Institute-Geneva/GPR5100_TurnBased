@@ -25,8 +25,6 @@ private:
 
     void StartNewGame();
     void UpdateConnectionPhase();
-    void UpdateGamePhase();
-    void UpdateEndPhase();
     void ReceivePacket();
     PlayerNumber CheckWinner() const;
     void ManageMovePacket(const MovePacket& movePacket);

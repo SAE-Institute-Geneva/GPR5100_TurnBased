@@ -14,6 +14,7 @@ public:
     void AddSystem(System* system);
     void AddDrawSystem(DrawInterface* drawSystem);
     void AddDrawImGuiSystem(DrawImGuiInterface* drawImGuiSystem);
+    void AddOnEventInterface(OnEventInterface* onEventInterface);
     void Run();
 private:
     void Init();
@@ -23,5 +24,6 @@ private:
     std::vector<System*> systems_;
     std::vector<DrawInterface*> drawSystems_;
     std::vector<DrawImGuiInterface*> drawImGuiSystems_;
+    std::vector<OnEventInterface*> onEventInterfaces_;
     sf::RenderWindow window_; 
 };

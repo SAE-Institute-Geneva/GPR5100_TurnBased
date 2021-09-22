@@ -15,17 +15,21 @@ namespace morpion
 
     struct Packet
     {
-        unsigned char packetType;
+        PacketType packetType;
     };
 
     inline sf::Packet& operator <<(sf::Packet& packet, const Packet& morpionPacket)
     {
-        return packet << morpionPacket.packetType;
+        const auto packetType = static_cast<unsigned char>(morpionPacket.packetType);
+        return packet << packetType;
     }
 
     inline sf::Packet& operator >>(sf::Packet& packet, Packet& morpionPacket)
     {
-        return packet >> morpionPacket.packetType ;
+        unsigned char packetType;
+        packet >> packetType;
+        morpionPacket.packetType = static_cast<PacketType>(packetType);
+        return packet  ;
     }
 
     struct GameInitPacket : Packet
@@ -35,7 +39,7 @@ namespace morpion
 
     inline sf::Packet& operator <<(sf::Packet& packet, const GameInitPacket& gameInitPacket)
     {
-        return packet << gameInitPacket.packetType
+        return packet << static_cast<unsigned char>(gameInitPacket.packetType)
         << gameInitPacket.playerNumber;
     }
 
@@ -52,7 +56,7 @@ namespace morpion
 
     inline sf::Packet& operator <<(sf::Packet& packet, const MovePacket& movePacket)
     {
-        return packet << movePacket.packetType
+        return packet << static_cast<unsigned char>(movePacket.packetType)
             << movePacket.position.x
             << movePacket.position.y
             << movePacket.playerNumber;
@@ -83,7 +87,7 @@ namespace morpion
     inline sf::Packet& operator <<(sf::Packet& packet, const EndPacket& endPacket)
     {
         const auto endType = static_cast<unsigned char>(endPacket.endType);
-        return packet << endPacket.packetType
+        return packet << static_cast<unsigned char>(endPacket.packetType)
             << endType;
     }
 

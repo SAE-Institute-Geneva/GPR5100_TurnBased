@@ -30,6 +30,11 @@ void Engine::AddDrawImGuiSystem(DrawImGuiInterface* drawImGuiSystem)
     drawImGuiSystems_.push_back(drawImGuiSystem);
 }
 
+void Engine::AddOnEventInterface(OnEventInterface* onEventInterface)
+{
+    onEventInterfaces_.push_back(onEventInterface);
+}
+
 void Engine::Run()
 {
     Init();
@@ -65,6 +70,10 @@ void Engine::Update(sf::Time dt)
             return;
         default:
             break;
+        }
+        for(auto& onEventInterface : onEventInterfaces_)
+        {
+            onEventInterface->OnEvent(event);
         }
     }
     window_.clear(sf::Color::Black);

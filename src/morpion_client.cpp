@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <imgui_stdlib.h>
 #include <iostream>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Network/Packet.hpp>
 #include <SFML/Network/Socket.hpp>
 
@@ -131,7 +132,7 @@ int MorpionClient::GetPlayerNumber() const
 void MorpionClient::SendNewMove(sf::Vector2i position)
 {
     MovePacket movePacket;
-    movePacket.packetType = static_cast<unsigned char>(PacketType::MOVE);
+    movePacket.packetType = PacketType::MOVE;
     movePacket.position = position;
     movePacket.playerNumber = playerNumber_;
     sf::Packet packet;
@@ -246,5 +247,116 @@ void MorpionView::DrawImGui()
     
 
     
+}
+
+void MorpionView::Draw(sf::RenderWindow& window)
+{
+    if(windowSize_.x == 0)
+    {
+        Resize(sf::Vector2i(window.getSize()));
+    }
+    DrawBoard(window);
+    const auto& moves = client_.GetMoves();
+    for(unsigned i = 0; i < client_.GetMoveIndex(); i++)
+    {
+        DrawMove(window, moves[i]);
+    }
+}
+
+void MorpionView::OnEvent(const sf::Event& event)
+{
+    if(event.type == sf::Event::Resized)
+    {
+        Resize(sf::Vector2i(
+            event.size.width,
+            event.size.height ));
+    }
+}
+
+void MorpionView::DrawBoard(sf::RenderWindow& window)
+{
+    for(int i = 0; i < 2; i++)
+    {
+        rect_ = sf::RectangleShape();
+        rect_.setFillColor(sf::Color::White);
+        rect_.setPosition(sf::Vector2f(
+            boardOrigin_.x, 
+            boardOrigin_.y + tileSize_.y * (i + 1)));
+        rect_.setSize(sf::Vector2f(
+            boardWindowSize_.x, 
+            thickness));
+        rect_.setOrigin(sf::Vector2f(0, thickness / 2));
+        window.draw(rect_);
+    }
+    for (int j = 0; j < 2; j++)
+    {
+        rect_ = sf::RectangleShape();
+        rect_.setFillColor(sf::Color::White);
+        rect_.setPosition(sf::Vector2f(
+            boardOrigin_.x+tileSize_.x*(j+1), 
+            boardOrigin_.y));
+        rect_.setSize(sf::Vector2f(
+            thickness, 
+            boardWindowSize_.y));
+        rect_.setOrigin(sf::Vector2f(thickness / 2, 0));
+        window.draw(rect_);
+    }
+}
+
+void MorpionView::DrawMove(sf::RenderWindow& window, const Move& move)
+{
+    if(move.playerNumber == 0)
+    {
+        DrawCross(window, move.position);
+    }
+    else
+    {
+        DrawCircle(window, move.position);
+    }
+}
+
+void MorpionView::DrawCircle(sf::RenderWindow& window, sf::Vector2i pos)
+{
+    circle_.setFillColor(sf::Color::Transparent);
+    circle_.setOutlineColor(sf::Color::White);
+    circle_.setOutlineThickness(thickness);
+    const auto radius = tileSize_.x / 2 - 2 * thickness;
+    circle_.setRadius(radius);
+    circle_.setOrigin(sf::Vector2f(radius-2*thickness, radius-2*thickness));
+    circle_.setPosition(sf::Vector2f(
+        boardOrigin_.x+tileSize_.x*pos.x+radius,
+        boardOrigin_.y+tileSize_.y*pos.y+radius
+    ));
+    window.draw(circle_);
+}
+
+void MorpionView::DrawCross(sf::RenderWindow& window, sf::Vector2i pos)
+{
+    rect_.setFillColor(sf::Color::White);
+    rect_.setSize(sf::Vector2f(tileSize_.x, thickness));
+    rect_.setOrigin(sf::Vector2f(tileSize_.x / 2, thickness / 2));
+    rect_.setPosition(sf::Vector2f(
+        boardOrigin_.x+tileSize_.x*pos.x+tileSize_.x/2,
+        boardOrigin_.y+tileSize_.y*pos.y+tileSize_.y/2
+    ));
+    rect_.setRotation(45.0f);
+    window.draw(rect_);
+    rect_.setRotation(-45.0f);
+    window.draw(rect_);
+}
+
+void MorpionView::Resize(sf::Vector2i newWindowSize)
+{
+    windowSize_ = newWindowSize;
+    const auto minValue = std::min(windowSize_.x, windowSize_.y);
+    boardWindowSize_ = { minValue, minValue };
+    boardOrigin_ = {
+        (windowSize_.x - boardWindowSize_.x) / 2,
+        (windowSize_.y - boardWindowSize_.y) / 2
+    };
+    tileSize_ = {
+        (boardWindowSize_.x - 2 * thickness) / 3,
+        (boardWindowSize_.y - 2 * thickness) / 3,
+    };
 }
 }

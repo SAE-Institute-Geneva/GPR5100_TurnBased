@@ -177,7 +177,7 @@ namespace morpion
         if(endType != EndType::NONE)
         {
             EndPacket endPacket{};
-            endPacket.packetType = static_cast<unsigned char>(PacketType::END);
+            endPacket.packetType = PacketType::END;
             endPacket.endType = endType;
 
             //sent new move to all players
@@ -196,7 +196,7 @@ namespace morpion
             phase_ = MorpionPhase::END;
         }
         MovePacket newMovePacket = movePacket;
-        newMovePacket.packetType = static_cast<unsigned char>(PacketType::MOVE);
+        newMovePacket.packetType = PacketType::MOVE;
 
         //sent new move to all players
         for(auto& socket: sockets_)
@@ -231,7 +231,6 @@ namespace morpion
                 break;
             case MorpionPhase::GAME:
                 ReceivePacket();
-                UpdateGamePhase();
                 break;
             case MorpionPhase::END:
                 return EXIT_SUCCESS;
@@ -253,8 +252,8 @@ namespace morpion
 
         for (unsigned char i = 0; i < sockets_.size(); i++)
         {
-            GameInitPacket gameInitPacket;
-            gameInitPacket.packetType = static_cast<unsigned char>(PacketType::GAME_INIT);
+            GameInitPacket gameInitPacket{};
+            gameInitPacket.packetType = PacketType::GAME_INIT;
             gameInitPacket.playerNumber = i != dice_roll;
             sf::Packet sentPacket;
             sentPacket << gameInitPacket;
@@ -288,14 +287,6 @@ namespace morpion
                 }
             }
         }
-    }
-
-    void MorpionServer::UpdateGamePhase()
-    {
-    }
-
-    void MorpionServer::UpdateEndPhase()
-    {
     }
 
     int MorpionServer::GetNextSocket()

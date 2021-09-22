@@ -68,6 +68,7 @@ namespace morpion
 
     enum class EndType : unsigned char
     {
+        NONE,
         STALEMATE,
         WIN_P1,
         WIN_P2,

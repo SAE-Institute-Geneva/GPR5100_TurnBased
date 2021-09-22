@@ -27,12 +27,13 @@ public:
     void SendNewMove(sf::Vector2i position);
     const std::array<Move, 9>& GetMoves() const;
     unsigned char GetMoveIndex() const;
+    std::string_view GetEndMessage() const;
 private:
     sf::TcpSocket socket_;
     MorpionPhase phase_ = MorpionPhase::CONNECTION;
     std::array<Move, 9> moves_{};
     unsigned char currentMoveIndex_ = 0;
-
+    std::string endMessage_;
     PlayerNumber playerNumber_ = 255u;
 };
 

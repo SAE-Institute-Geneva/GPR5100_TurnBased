@@ -62,6 +62,33 @@ void MorpionClient::ReceivePacket(sf::Packet& packet)
         currentMoveIndex_++;
         break;
     }
+    case PacketType::END:
+    {
+        if(phase_ != MorpionPhase::GAME)
+        {
+            break;
+        }
+        EndPacket endPacket;
+        packet >> endPacket;
+        switch (endPacket.endType)
+        {
+        case EndType::STALEMATE: 
+            endMessage_ = "Stalemate";
+            break;
+        case EndType::WIN_P1:
+            endMessage_ = playerNumber_ == 0 ? "You won" : "You lost";
+            break;
+        case EndType::WIN_P2: 
+            endMessage_ = playerNumber_ == 1 ? "You won" : "You lost";
+            break;
+        case EndType::ERROR: 
+            endMessage_ = "Error";
+            break;
+        default: ;
+        }
+        phase_ = MorpionPhase::END;
+        break;
+    }
     default: 
         break;
     }
@@ -126,13 +153,59 @@ unsigned char MorpionClient::GetMoveIndex() const
     return currentMoveIndex_;
 }
 
+std::string_view MorpionClient::GetEndMessage() const
+{
+    return endMessage_;
+}
+
 MorpionView::MorpionView(MorpionClient& client) : client_(client)
 {
 }
 
 void MorpionView::DrawImGui()
 {
-    if(client_.GetPhase() == MorpionPhase::GAME)
+    switch(client_.GetPhase())
+    {
+    case MorpionPhase::CONNECTION:
+    {
+        if (client_.IsConnected())
+            return;
+        ImGui::Begin("Client");
+
+        ImGui::InputText("Ip Address", &ipAddressBuffer_);
+        ImGui::InputInt("Port Number", &portNumber_);
+        if (ImGui::Button("Connect"))
+        {
+            const auto status = client_.Connect(sf::IpAddress(ipAddressBuffer_), portNumber_);
+            if (status != sf::Socket::Done)
+            {
+                switch (status)
+                {
+                case sf::Socket::NotReady:
+                    std::cerr << "Not ready to connect to " << ipAddressBuffer_ << ':' << portNumber_ << '\n';
+                    break;
+                case sf::Socket::Partial:
+                    std::cerr << "Connecting to " << ipAddressBuffer_ << ':' << portNumber_ << '\n';
+                    break;
+                case sf::Socket::Disconnected:
+                    std::cerr << "Disconnecting to " << ipAddressBuffer_ << ':' << portNumber_ << '\n';
+                    break;
+                case sf::Socket::Error:
+                    std::cerr << "Error connecting to " << ipAddressBuffer_ << ':' << portNumber_ << '\n';
+                    break;
+                default:;
+                }
+            }
+            else
+            {
+                std::cout << "Successfully connected to server\n";
+            }
+
+        }
+        ImGui::End();
+        break;
+    }
+    case MorpionPhase::GAME:
     {
         const auto playerNumber = client_.GetPlayerNumber();
         ImGui::Begin("Client");
@@ -142,59 +215,36 @@ void MorpionView::DrawImGui()
         board.fill(' ');
         board[9] = 0;
         const auto& moves = client_.GetMoves();
-        for(unsigned char i = 0; i < client_.GetMoveIndex();i++)
+        for (unsigned char i = 0; i < client_.GetMoveIndex(); i++)
         {
             const auto& move = moves[i];
-            board[move.position.x * 3 + move.position.y] = move.playerNumber ? 'X' : 'O';
+            board[move.position.y * 3 + move.position.x] = move.playerNumber ? 'X' : 'O';
         }
         ImGui::Text("%s", board.data());
-        
+
 
         ImGui::InputInt2("New Move", currentPosition_.data());
         if (client_.GetMoveIndex() % 2 == playerNumber)
         {
-            if(ImGui::Button("Send"))
+            if (ImGui::Button("Send"))
             {
                 client_.SendNewMove(sf::Vector2i(currentPosition_[0], currentPosition_[1]));
             }
         }
         ImGui::End();
+        break;
     }
-    if (client_.GetPhase() != MorpionPhase::CONNECTION || client_.IsConnected())
-        return;
-
-    ImGui::Begin("Client");
-    
-    ImGui::InputText("Ip Address", &ipAddressBuffer_);
-    ImGui::InputInt("Port Number", &portNumber_);
-    if (ImGui::Button("Connect"))
+    case MorpionPhase::END:
     {
-        const auto status = client_.Connect(sf::IpAddress(ipAddressBuffer_), portNumber_);
-        if (status != sf::Socket::Done)
-        {
-            switch (status)
-            {
-            case sf::Socket::NotReady:
-                std::cerr << "Not ready to connect to " << ipAddressBuffer_ << ':' << portNumber_ << '\n';
-                break;
-            case sf::Socket::Partial:
-                std::cerr << "Connecting to " << ipAddressBuffer_ << ':' << portNumber_ << '\n';
-                break;
-            case sf::Socket::Disconnected:
-                std::cerr << "Disconnecting to " << ipAddressBuffer_ << ':' << portNumber_ << '\n';
-                break;
-            case sf::Socket::Error:
-                std::cerr << "Error connecting to " << ipAddressBuffer_ << ':' << portNumber_ << '\n';
-                break;
-            default:;
-            }
-        }
-        else
-        {
-            std::cout << "Successfully connected to server\n";
-        }
-    
+        ImGui::Begin("Client");
+        ImGui::Text("%s", client_.GetEndMessage().data());
+        ImGui::End();
+        break;
     }
-    ImGui::End();
+    default: ;
+    }
+    
+
+    
 }
 }

@@ -41,6 +41,95 @@ namespace morpion
         }
     }
 
+    PlayerNumber MorpionServer::CheckWinner() const
+    {
+        std::array<std::array<PlayerNumber, 3>, 3> board{};
+        std::ranges::for_each(board, [](auto& line)
+        {
+            line.fill(255u);
+        });
+        for(unsigned i = 0; i < currentMoveIndex_; i++)
+        {
+            const auto& move = moves_[i];
+            board[move.position.x][move.position.y] = move.playerNumber;
+        }
+        //Line
+        for(unsigned i = 0; i < 3; i++)
+        {
+            PlayerNumber firstTile = board[i][0];
+            bool victory = true;
+            for(unsigned j = 1; j < 3; j++)
+            {
+                if (firstTile != board[i][j])
+                {
+                    victory = false;
+                    break;
+                }
+            }
+            if(victory && firstTile != 255u)
+            {
+                return firstTile;
+            }
+        }
+        //Column
+        for (unsigned i = 0; i < 3; i++)
+        {
+            PlayerNumber firstTile = board[0][i];
+            bool victory = true;
+            for (unsigned j = 1; j < 3; j++)
+            {
+                if (firstTile != board[j][i])
+                {
+                    victory = false;
+                    break;
+                }
+            }
+            if (victory && firstTile != 255u)
+            {
+                return firstTile;
+            }
+        }
+        //First diagonal
+        {
+            PlayerNumber firstTile = board[0][0];
+            bool victory = true;
+            for (unsigned i = 1; i < 3; i++)
+            {
+                if (firstTile != board[i][i])
+                {
+                    victory = false;
+                    break;
+                }
+            }
+            if (victory && firstTile != 255u)
+            {
+                return firstTile;
+            }
+        }
+        {
+            const std::array diagonal = {
+                sf::Vector2i(2,0),
+                sf::Vector2i(1,1),
+                sf::Vector2i(0,2)
+            };
+            PlayerNumber firstTile = board[diagonal[0].x][diagonal[0].y];
+            bool victory = true;
+            for (unsigned i = 1; i < 3; i++)
+            {
+                if (firstTile != board[diagonal[i].x][diagonal[i].y])
+                {
+                    victory = false;
+                    break;
+                }
+            }
+            if (victory && firstTile != 255u)
+            {
+                return firstTile;
+            }
+        }
+        return 255u;
+    }
+
     void MorpionServer::ManageMovePacket(const MovePacket& movePacket)
     {
         std::cout << "Player " << movePacket.playerNumber + 1 <<
@@ -56,6 +145,11 @@ namespace morpion
             return;
         }
 
+        if(movePacket.position.x > 2 || movePacket.position.y > 2)
+        {
+            return;
+        }
+
         for(unsigned char i = 0; i < currentMoveIndex_; i++)
         {
             if(moves_[i].position == movePacket.position)
@@ -67,6 +161,40 @@ namespace morpion
         currentMove.position = movePacket.position;
         currentMove.playerNumber = movePacket.playerNumber;
         currentMoveIndex_++;
+        EndType endType = EndType::NONE;
+        if(currentMoveIndex_ == 9)
+        {
+            //TODO end of game
+            endType = EndType::STALEMATE;
+        }
+        //TODO check victory condition
+        PlayerNumber winningPlayer = CheckWinner();
+        if(winningPlayer != 255u)
+        {
+            endType = winningPlayer ? EndType::WIN_P2 : EndType::WIN_P1;
+        }
+        //TODO send end of game packet
+        if(endType != EndType::NONE)
+        {
+            EndPacket endPacket{};
+            endPacket.packetType = static_cast<unsigned char>(PacketType::END);
+            endPacket.endType = endType;
+
+            //sent new move to all players
+            for (auto& socket : sockets_)
+            {
+                sf::Packet sentPacket;
+                sentPacket << endPacket;
+                sf::Socket::Status sentStatus;
+                do
+                {
+                    sentStatus = socket.send(sentPacket);
+                } while (sentStatus == sf::Socket::Partial);
+
+            }
+
+            phase_ = MorpionPhase::END;
+        }
         MovePacket newMovePacket = movePacket;
         newMovePacket.packetType = static_cast<unsigned char>(PacketType::MOVE);
 
@@ -80,6 +208,7 @@ namespace morpion
             {
                 sentStatus = socket.send(sentPacket);
             } while (sentStatus == sf::Socket::Partial);
+            
         }
     }
 
@@ -94,18 +223,18 @@ namespace morpion
 
         while (true)
         {
-            ReceivePacket();
             switch (phase_)
             {
             case MorpionPhase::CONNECTION:
+                ReceivePacket();
                 UpdateConnectionPhase();
                 break;
             case MorpionPhase::GAME:
+                ReceivePacket();
                 UpdateGamePhase();
                 break;
             case MorpionPhase::END:
-                UpdateEndPhase();
-                break;
+                return EXIT_SUCCESS;
             default:;
             }
         }

@@ -28,6 +28,7 @@ private:
     void UpdateGamePhase();
     void UpdateEndPhase();
     void ReceivePacket();
+    PlayerNumber CheckWinner() const;
     void ManageMovePacket(const MovePacket& movePacket);
 
     int GetNextSocket();

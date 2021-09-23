@@ -45,6 +45,7 @@ namespace morpion
     public:
         MorpionView(MorpionClient& client);
         void DrawImGui() override;
+       
         void Draw(sf::RenderWindow& window) override;
         void OnEvent(const sf::Event& event) override;
     private:
@@ -52,7 +53,7 @@ namespace morpion
         void DrawMove(sf::RenderWindow& window, const Move& move);
         void DrawCircle(sf::RenderWindow& window, sf::Vector2i pos);
         void DrawCross(sf::RenderWindow& window, sf::Vector2i pos);
-
+        void DrawCursor(sf::RenderWindow& window);
         void Resize(sf::Vector2i newWindowSize);
 
         MorpionClient& client_;
@@ -67,6 +68,8 @@ namespace morpion
         sf::Vector2i boardWindowSize_;
         sf::Vector2i boardOrigin_;
         sf::Vector2i tileSize_;
+
+        sf::Vector2i cursorPos_{ -1,-1 };
 
         static constexpr int thickness = 10;
     };

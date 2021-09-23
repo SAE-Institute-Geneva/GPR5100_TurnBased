@@ -132,34 +132,34 @@ namespace morpion
 
     void MorpionServer::ManageMovePacket(const MovePacket& movePacket)
     {
-        std::cout << "Player " << movePacket.playerNumber + 1 <<
-            " made move " << movePacket.position.x << ',' <<
-            movePacket.position.y << '\n';
+        std::cout << "Player " << movePacket.move.playerNumber + 1 <<
+            " made move " << movePacket.move.position.x << ',' <<
+            movePacket.move.position.y << '\n';
 
         if (phase_ != MorpionPhase::GAME)
             return;
 
-        if(currentMoveIndex_ % 2 != movePacket.playerNumber)
+        if(currentMoveIndex_ % 2 != movePacket.move.playerNumber)
         {
             //TODO return to player an error msg
             return;
         }
 
-        if(movePacket.position.x > 2 || movePacket.position.y > 2)
+        if(movePacket.move.position.x > 2 || movePacket.move.position.y > 2)
         {
             return;
         }
 
         for(unsigned char i = 0; i < currentMoveIndex_; i++)
         {
-            if(moves_[i].position == movePacket.position)
+            if(moves_[i].position == movePacket.move.position)
                 //TODO return an error msg
                 return;
         }
 
         auto& currentMove = moves_[currentMoveIndex_];
-        currentMove.position = movePacket.position;
-        currentMove.playerNumber = movePacket.playerNumber;
+        currentMove.position = movePacket.move.position;
+        currentMove.playerNumber = movePacket.move.playerNumber;
         currentMoveIndex_++;
         EndType endType = EndType::NONE;
         if(currentMoveIndex_ == 9)
@@ -173,8 +173,24 @@ namespace morpion
         {
             endType = winningPlayer ? EndType::WIN_P2 : EndType::WIN_P1;
         }
-        //TODO send end of game packet
-        if(endType != EndType::NONE)
+        
+        MovePacket newMovePacket = movePacket;
+        newMovePacket.packetType = PacketType::MOVE;
+
+        //sent new move to all players
+        for(auto& socket: sockets_)
+        {
+            sf::Packet sentPacket;
+            sentPacket << newMovePacket;
+            sf::Socket::Status sentStatus;
+            do
+            {
+                sentStatus = socket.send(sentPacket);
+            } while (sentStatus == sf::Socket::Partial);
+            
+        }
+        //send end of game packet
+        if (endType != EndType::NONE)
         {
             EndPacket endPacket{};
             endPacket.packetType = PacketType::END;
@@ -194,21 +210,6 @@ namespace morpion
             }
 
             phase_ = MorpionPhase::END;
-        }
-        MovePacket newMovePacket = movePacket;
-        newMovePacket.packetType = PacketType::MOVE;
-
-        //sent new move to all players
-        for(auto& socket: sockets_)
-        {
-            sf::Packet sentPacket;
-            sentPacket << newMovePacket;
-            sf::Socket::Status sentStatus;
-            do
-            {
-                sentStatus = socket.send(sentPacket);
-            } while (sentStatus == sf::Socket::Partial);
-            
         }
     }
 

@@ -50,24 +50,23 @@ namespace morpion
 
     struct MovePacket : Packet
     {
-        sf::Vector2i position;
-        PlayerNumber playerNumber;
+        Move move;
     };
 
     inline sf::Packet& operator <<(sf::Packet& packet, const MovePacket& movePacket)
     {
         return packet << static_cast<unsigned char>(movePacket.packetType)
-            << movePacket.position.x
-            << movePacket.position.y
-            << movePacket.playerNumber;
+            << movePacket.move.position.x
+            << movePacket.move.position.y
+            << movePacket.move.playerNumber;
     }
 
     inline sf::Packet& operator >>(sf::Packet& packet, MovePacket& movePacket)
     {
         return packet
-            >> movePacket.position.x
-            >> movePacket.position.y
-            >> movePacket.playerNumber;
+            >> movePacket.move.position.x
+            >> movePacket.move.position.y
+            >> movePacket.move.playerNumber;
     }
 
     enum class EndType : unsigned char

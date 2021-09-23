@@ -56,10 +56,11 @@ namespace morpion
             MovePacket movePacket;
             packet >> movePacket;
             std::cout << "Receive move packet from player " <<
-                movePacket.playerNumber + 1 << " with position: " << movePacket.position.x << ',' << movePacket.position.y << '\n';
+                movePacket.move.playerNumber + 1 << " with position: " << movePacket.move.position.x << 
+                ',' << movePacket.move.position.y << '\n';
             auto& currentMove = moves_[currentMoveIndex_];
-            currentMove.position = movePacket.position;
-            currentMove.playerNumber = movePacket.playerNumber;
+            currentMove.position = movePacket.move.position;
+            currentMove.playerNumber = movePacket.move.playerNumber;
             currentMoveIndex_++;
             break;
         }
@@ -133,8 +134,8 @@ namespace morpion
     {
         MovePacket movePacket;
         movePacket.packetType = PacketType::MOVE;
-        movePacket.position = position;
-        movePacket.playerNumber = playerNumber_;
+        movePacket.move.position = position;
+        movePacket.move.playerNumber = playerNumber_;
         sf::Packet packet;
         packet << movePacket;
         sf::Socket::Status sentStatus;
@@ -202,35 +203,6 @@ namespace morpion
                     std::cout << "Successfully connected to server\n";
                 }
 
-            }
-            ImGui::End();
-            break;
-        }
-        case MorpionPhase::GAME:
-        {
-            const auto playerNumber = client_.GetPlayerNumber();
-            ImGui::Begin("Client");
-            ImGui::Text("You are player %d", playerNumber + 1);
-
-            std::array<char, 10> board;
-            board.fill(' ');
-            board[9] = 0;
-            const auto& moves = client_.GetMoves();
-            for (unsigned char i = 0; i < client_.GetMoveIndex(); i++)
-            {
-                const auto& move = moves[i];
-                board[move.position.y * 3 + move.position.x] = move.playerNumber ? 'X' : 'O';
-            }
-            ImGui::Text("%s", board.data());
-
-
-            ImGui::InputInt2("New Move", currentPosition_.data());
-            if (client_.GetMoveIndex() % 2 == playerNumber)
-            {
-                if (ImGui::Button("Send"))
-                {
-                    client_.SendNewMove(sf::Vector2i(currentPosition_[0], currentPosition_[1]));
-                }
             }
             ImGui::End();
             break;

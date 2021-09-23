@@ -68,6 +68,12 @@ void Engine::Update(sf::Time dt)
         case sf::Event::Closed:
             window_.close();
             return;
+        case sf::Event::Resized:
+        {
+            sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
+            window_.setView(sf::View(visibleArea));
+            break;
+        }
         default:
             break;
         }
